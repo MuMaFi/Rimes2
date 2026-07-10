@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReimGenerator | Deutschrap Tool</title>
+<style>
+  :root{
+    --stone-900:#1c1917;
+    --stone-800:#292524;
+    --stone-700:#44403c;
+    --stone-600:#57534e;
+    --stone-500:#78716c;
+    --stone-400:#a8a29e;
+    --stone-100:#f5f5f4;
+    --yellow-400:#facc15;
+    --yellow-500:#eab308;
+    --cyan-400:#22d3ee;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--stone-900);
+    color: var(--stone-100);
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 16px;
+  }
+  @media (min-width:640px){ body{ padding: 32px; } }
+  .wrap{ max-width: 900px; margin: 0 auto; }
+
+  /* Header */
+  .kicker{
+    display:inline-block;
+    background: var(--yellow-400);
+    color: var(--stone-900);
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    transform: rotate(-2deg);
+    margin-bottom: 12px;
+  }
+  h1{
+    font-size: 2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    margin: 0;
+  }
+  @media (min-width:640px){ h1{ font-size: 3rem; } }
+  h1 .accent{ color: var(--yellow-400); }
+  .sub{ color: var(--stone-400); font-size: 0.9rem; margin-top: 8px; }
+  @media (min-width:640px){ .sub{ font-size: 1rem; } }
+  header{ margin-bottom: 32px; }
+
+  /* Mode picker */
+  .mode-grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (min-width:640px){ .mode-grid{ grid-template-columns: repeat(4, 1fr); } }
+  .mode-btn{
+    border-radius: 10px;
+    padding: 12px;
+    border: 2px solid var(--stone-700);
+    background: var(--stone-800);
+    text-align:left;
+    cursor:pointer;
+    transition: 0.15s ease;
+  }
+  .mode-btn:hover{ border-color: var(--stone-500); transform: translateY(-1px); }
+  .mode-btn:active{ transform: scale(0.97); }
+  .mode-btn.active{ border-color: var(--yellow-400); background: var(--yellow-400); }
+  .mode-id{
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--stone-100);
+  }
+  .mode-btn.active .mode-id{ color: var(--stone-900); }
+  .mode-desc{ font-size: 0.72rem; color: var(--stone-500); margin-top: 4px; }
+  .mode-btn.active .mode-desc{ color: var(--stone-900); }
+
+  /* Action buttons */
+  .actions-row{
+    display:flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .btn{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: 0.15s ease;
+  }
+  .btn:active{ transform: scale(0.96); }
+  .btn-primary{ background: var(--yellow-400); color: var(--stone-900); }
+  .btn-primary:hover{ background: var(--yellow-500); }
+  .btn-secondary{ background: var(--stone-800); color: var(--stone-100); border: 2px solid var(--stone-700); }
+  .btn-secondary:hover{ background: var(--stone-700); }
+
+  /* Manual copy fallback */
+  .manual-panel{
+    background: var(--stone-800);
+    border: 2px solid var(--yellow-400);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  .manual-panel.hidden{ display:none; }
+  .manual-panel p{ color: var(--stone-400); font-size: 0.75rem; margin: 0 0 8px; }
+  .manual-panel textarea{
+    width: 100%;
+    height: 120px;
+    background: var(--stone-900);
+    border: 1px solid var(--stone-700);
+    border-radius: 8px;
+    padding: 8px;
+    color: var(--stone-100);
+    font-size: 0.85rem;
+    font-family: 'Courier New', monospace;
+    resize: vertical;
+  }
+  .manual-close{
+    margin-top: 8px;
+    background: none;
+    border: none;
+    color: var(--stone-500);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .manual-close:hover{ color: var(--stone-100); }
+
+  /* Stanza grid */
+  .stanza-grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width:640px){ .stanza-grid{ grid-template-columns: repeat(2, 1fr); } }
+  .stanza-card{
+    background: var(--stone-800);
+    border: 2px solid var(--stone-700);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .stanza-head{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .stanza-label{ color: var(--stone-500); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; }
+  .stanza-head-right{ display:flex; align-items:center; gap: 8px; }
+  .stanza-pattern{ font-family: 'Courier New', monospace; color: var(--stone-500); font-size: 0.72rem; letter-spacing: 2px; }
+  .shuffle-mini{
+    background:none;
+    border:none;
+    color: var(--stone-500);
+    cursor:pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 2px;
+    transition: 0.15s ease;
+  }
+  .shuffle-mini:hover{ color: var(--yellow-400); }
+  .shuffle-mini:active{ transform: scale(0.9); }
+
+  .line-row{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .line-row:last-child{ margin-bottom: 0; }
+  .letter-badge{
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    font-weight: 900;
+  }
+  .letter-badge.a{ background: var(--yellow-400); color: var(--stone-900); }
+  .letter-badge.b{ background: var(--cyan-400); color: var(--stone-900); }
+  .letter-badge.free{ background: var(--stone-700); color: var(--stone-400); }
+
+  .line-input{
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 2px dashed var(--stone-600);
+    outline: none;
+    padding: 6px 4px;
+    font-size: 0.95rem;
+    color: var(--stone-100);
+    font-family: inherit;
+  }
+  .line-input::placeholder{ color: var(--stone-600); }
+  .line-input.a:focus{ border-bottom-color: var(--yellow-400); }
+  .line-input.b:focus{ border-bottom-color: var(--cyan-400); }
+  .line-input.free:focus{ border-bottom-color: var(--stone-400); }
+
+  .rhyme-word{
+    flex: 0 0 auto;
+    background: var(--stone-900);
+    border: 1px solid var(--stone-700);
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  .rhyme-word.a{ color: var(--yellow-400); }
+  .rhyme-word.b{ color: var(--cyan-400); }
+
+  /* Legend */
+  .legend{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: var(--stone-500);
+    font-size: 0.75rem;
+    margin-top: 24px;
+  }
+  .legend-item{ display:flex; align-items:center; gap: 6px; }
+  .legend-swatch{ width: 12px; height: 12px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="kicker">Deutschrap Tool</span>
+    <h1><span class="accent">Reim</span>Generator</h1>
+    <p class="sub">Reimschema wählen. Wir liefern die Reime, du lieferst die Bars.</p>
+  </header>
+
+  <div class="mode-grid" id="modeGrid"></div>
+
+  <div class="actions-row">
+    <button class="btn btn-primary" id="shuffleAllBtn">🔀 Alle neu mischen</button>
+    <button class="btn btn-secondary" id="copyBtn">📋 Kopieren</button>
+  </div>
+
+  <div class="manual-panel hidden" id="manualPanel">
+    <p>Automatisches Kopieren war blockiert. Text ist markiert – einfach Strg+C bzw. Cmd+C drücken:</p>
+    <textarea id="manualTextarea" readonly></textarea>
+    <button class="manual-close" id="manualCloseBtn">Schließen</button>
+  </div>
+
+  <div class="stanza-grid" id="stanzaGrid"></div>
+
+  <p class="legend" id="legend"></p>
+</div>
+
+<script>
+/* =========================================================
+   REIMGENERATOR — Deutscher Hip-Hop Songwriting Tool
+   Vorgefertigte, shufflebare Reimwörter am Zeilenende.
+   Reines HTML/CSS/Vanilla-JS, keine externen Abhängigkeiten.
+   ========================================================= */
+
+// ---------- Reim-Familien ----------
+// Jede Familie ist eine Gruppe von Wörtern, die sich untereinander reimen.
+const RHYME_FAMILIES = [
+  { id: "acht", words: ["Nacht", "Macht", "Pracht", "lacht", "gemacht", "gedacht", "entfacht", "bedacht", "Verdacht", "Schacht"] },
+  { id: "eld", words: ["Geld", "Welt", "Held", "Feld", "Zelt", "quält", "fällt", "erzählt", "bestellt"] },
+  { id: "aum", words: ["Traum", "Raum", "Baum", "kaum", "Schaum", "Saum", "Flaum"] },
+  { id: "eit", words: ["Zeit", "weit", "Streit", "Leid", "breit", "Neid", "bereit", "gescheit", "Freiheit", "Wahrheit"] },
+  { id: "ier", words: ["Gier", "Tier", "Papier", "Bier", "Visier", "Klavier", "Revier", "probier"] },
+  { id: "uss", words: ["Kuss", "Fluss", "Schuss", "Gruß", "Verdruss", "Genuss", "muss"] },
+  { id: "ang", words: ["Gang", "lang", "Klang", "Zwang", "Fang", "Rang", "bang", "Empfang", "Anfang", "Drang"] },
+  { id: "erz", words: ["Herz", "Schmerz", "Scherz", "Kerze"] },
+  { id: "ock", words: ["Block", "Stock", "Schock", "Rock"] },
+  { id: "eile", words: ["Style", "Meile", "Weile", "Zeile", "Feile"] },
+  { id: "o", words: ["Flow", "Show", "Ego", "so"] },
+  { id: "old", words: ["Gold", "rollt", "sollt", "wollt", "holt"] },
+  { id: "and", words: ["Land", "Rand", "Hand", "Wand", "Sand", "Verstand", "Band", "bekannt", "gebrannt", "genannt"] },
+  { id: "iebe", words: ["Liebe", "Diebe", "bliebe", "Triebe", "schiebe"] },
+  { id: "oss", words: ["groß", "bloß", "Los", "Boss", "Stoß"] },
+  { id: "immer", words: ["Zimmer", "immer", "schlimmer", "Flimmer", "nimmer"] },
+  { id: "ucht", words: ["Sucht", "Flucht", "Bucht", "verflucht", "versucht", "gesucht"] },
+  { id: "ampf", words: ["Kampf", "Krampf", "Dampf"] },
+  { id: "auch", words: ["Rauch", "Bauch", "brauch", "tauch", "Schlauch", "Strauch"] },
+  { id: "ohn", words: ["Lohn", "Sohn", "Ton", "schon", "Thron"] },
+  { id: "arte", words: ["Karte", "warte", "harte", "zarte"] },
+  { id: "icht", words: ["Licht", "nicht", "Gesicht", "Pflicht", "Gedicht", "dicht", "spricht", "Sicht", "Bericht"] },
+  { id: "eue", words: ["Treue", "Reue", "neue", "heute", "Beute", "Leute"] },
+  { id: "unde", words: ["Wunde", "Runde", "Stunde", "Kunde", "gesunde"] },
+  { id: "euer", words: ["Feuer", "teuer", "Steuer", "Abenteuer"] },
+  { id: "asse", words: ["Masse", "Klasse", "Rasse", "Kasse", "blasse", "passe", "hasse"] },
+  { id: "inder", words: ["Kinder", "Finder", "Erfinder", "blinder"] },
+  { id: "strasse", words: ["Straße", "Maße", "Blase", "Vase", "Nase", "Phrase", "Hase"] },
+  { id: "esse", words: ["Stress", "Adresse", "Prozess", "Exzess", "Presse", "Finesse", "Interesse"] },
+  { id: "one", words: ["Zone", "Drohne", "Bohne", "Krone"] },
+  { id: "uck", words: ["Druck", "Schmuck", "Ruck", "geduckt"] },
+  { id: "ick", words: ["Blick", "Trick", "dick", "Klick", "Genick", "Geschick"] }
+];
+
+const MODES = [
+  { id: "AAAA", label: "Schweifreim", desc: "alle 4 reimen" },
+  { id: "ABAB", label: "Kreuzreim", desc: "Zeile 1↔3, 2↔4" },
+  { id: "AABB", label: "Paarreim", desc: "Zeile 1↔2, 3↔4" },
+  { id: "AABA", label: "Sonderform", desc: "3 im Reim, 1 frei" }
+];
+
+const STORAGE_KEY = 'reimgenerator_state_v2';
+
+// ---------- Hilfsfunktionen: Shuffle & Auswahl ----------
+function shuffleArr(arr){
+  const copy = [...arr];
+  for(let i = copy.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function pickWords(family, count){
+  return shuffleArr(family.words).slice(0, count);
+}
+
+function pickFamily(minWords, excludeIds){
+  const candidates = RHYME_FAMILIES.filter(
+    f => f.words.length >= minWords && !excludeIds.has(f.id)
+  );
+  const pool = candidates.length > 0
+    ? candidates
+    : RHYME_FAMILIES.filter(f => f.words.length >= minWords);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ---------- Strophen-Generierung ----------
+function generateStanza(mode, usedIds){
+  if(mode === "AAAA"){
+    const family = pickFamily(4, usedIds);
+    usedIds.add(family.id);
+    const words = pickWords(family, 4);
+    return { letters: ["A", "A", "A", "A"], words: words, familyIds: [family.id] };
+  }
+  if(mode === "AABA"){
+    const familyA = pickFamily(3, usedIds);
+    usedIds.add(familyA.id);
+    const wordsA = pickWords(familyA, 3);
+    return {
+      letters: ["A", "A", "_", "A"],
+      words: [wordsA[0], wordsA[1], null, wordsA[2]],
+      familyIds: [familyA.id]
+    };
+  }
+  const familyA = pickFamily(2, usedIds);
+  usedIds.add(familyA.id);
+  const familyB = pickFamily(2, usedIds);
+  usedIds.add(familyB.id);
+  const wordsA = pickWords(familyA, 2);
+  const wordsB = pickWords(familyB, 2);
+  if(mode === "ABAB"){
+    return { letters: ["A", "B", "A", "B"], words: [wordsA[0], wordsB[0], wordsA[1], wordsB[1]], familyIds: [familyA.id, familyB.id] };
+  }
+  return { letters: ["A", "A", "B", "B"], words: [wordsA[0], wordsA[1], wordsB[0], wordsB[1]], familyIds: [familyA.id, familyB.id] };
+}
+
+function buildStanzas(mode){
+  const usedIds = new Set();
+  const stanzas = [];
+  for(let i = 0; i < 4; i++){
+    stanzas.push(generateStanza(mode, usedIds));
+  }
+  return stanzas;
+}
+
+// ---------- Zustand ----------
+let state = {
+  mode: 'AABB',
+  stanzas: buildStanzas('AABB'),
+  lyrics: {}
+};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && parsed.mode && MODES.some(m => m.id === parsed.mode) &&
+       Array.isArray(parsed.stanzas) && parsed.stanzas.length === 4){
+      state = parsed;
+    }
+  }catch(e){
+    console.warn('Konnte gespeicherten Song nicht laden:', e);
+  }
+}
+
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){
+    console.warn('Konnte Song nicht speichern:', e);
+  }
+}
+
+// ---------- Aktionen ----------
+function regenerateAll(targetMode){
+  state.mode = targetMode;
+  state.stanzas = buildStanzas(targetMode);
+  state.lyrics = {};
+  saveState();
+  render();
+  hideManualPanel();
+}
+
+function clearStanzaLyrics(sIdx){
+  Object.keys(state.lyrics).forEach(key => {
+    if(key.startsWith(sIdx + '-')) delete state.lyrics[key];
+  });
+}
+
+function regenerateStanza(sIdx){
+  const usedIds = new Set();
+  state.stanzas.forEach(s => s.familyIds.forEach(id => usedIds.add(id)));
+  const fresh = generateStanza(state.mode, usedIds);
+  state.stanzas[sIdx] = fresh;
+  clearStanzaLyrics(sIdx);
+  saveState();
+  render();
+  hideManualPanel();
+}
+
+function updateLyric(key, value){
+  state.lyrics[key] = value;
+  saveState();
+}
+
+function buildPlainText(){
+  return state.stanzas
+    .map((stanza, sIdx) =>
+      stanza.words
+        .map((word, lIdx) => {
+          const raw = state.lyrics[sIdx + '-' + lIdx] || '';
+          const trimmed = raw.trim();
+          if(word === null) return trimmed;
+          return trimmed ? trimmed + ' ' + word : word;
+        })
+        .join('\n')
+    )
+    .join('\n\n');
+}
+
+function legacyCopy(text){
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  let ok = false;
+  try{
+    ok = document.execCommand('copy');
+  }catch(err){
+    ok = false;
+  }
+  document.body.removeChild(textarea);
+  return ok;
+}
+
+function showManualPanel(text){
+  const panel = document.getElementById('manualPanel');
+  const ta = document.getElementById('manualTextarea');
+  ta.value = text;
+  panel.classList.remove('hidden');
+  ta.focus();
+  ta.select();
+}
+
+function hideManualPanel(){
+  document.getElementById('manualPanel').classList.add('hidden');
+}
+
+function flashCopyButton(success){
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = success ? '✓ Kopiert' : '📋 Kopieren';
+  if(success){
+    setTimeout(() => { btn.textContent = '📋 Kopieren'; }, 2000);
+  }
+}
+
+function copyAll(){
+  const text = buildPlainText();
+
+  function onSuccess(){
+    flashCopyButton(true);
+    hideManualPanel();
+  }
+
+  function onFailure(){
+    const ok = legacyCopy(text);
+    if(ok){
+      onSuccess();
+    }else{
+      showManualPanel(text);
+    }
+  }
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(onSuccess).catch(onFailure);
+  }else{
+    onFailure();
+  }
+}
+
+// ---------- Rendering ----------
+function renderModeGrid(){
+  const grid = document.getElementById('modeGrid');
+  grid.innerHTML = '';
+  MODES.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'mode-btn' + (state.mode === m.id ? ' active' : '');
+    btn.innerHTML = `
+      <div class="mode-id">${m.id}</div>
+      <div class="mode-desc">${m.label} · ${m.desc}</div>
+    `;
+    btn.addEventListener('click', () => regenerateAll(m.id));
+    grid.appendChild(btn);
+  });
+}
+
+function renderLegend(){
+  const legend = document.getElementById('legend');
+  legend.innerHTML = `
+    <span class="legend-item"><span class="legend-swatch" style="background:var(--yellow-400)"></span>Reimklang 1</span>
+    <span class="legend-item"><span class="legend-swatch" style="background:var(--cyan-400)"></span>Reimklang 2</span>
+    ${state.mode === 'AABA' ? '<span class="legend-item"><span class="legend-swatch" style="background:var(--stone-700)"></span>frei (kein Reim)</span>' : ''}
+  `;
+}
+
+function renderStanzas(){
+  const container = document.getElementById('stanzaGrid');
+  container.innerHTML = '';
+
+  state.stanzas.forEach((stanza, sIdx) => {
+    const card = document.createElement('div');
+    card.className = 'stanza-card';
+
+    const head = document.createElement('div');
+    head.className = 'stanza-head';
+    head.innerHTML = `
+      <span class="stanza-label">Strophe ${sIdx + 1}</span>
+      <div class="stanza-head-right">
+        <span class="stanza-pattern">${stanza.letters.join('·')}</span>
+      </div>
+    `;
+    const shuffleMini = document.createElement('button');
+    shuffleMini.className = 'shuffle-mini';
+    shuffleMini.setAttribute('aria-label', `Strophe ${sIdx + 1} neu mischen`);
+    shuffleMini.textContent = '🔀';
+    shuffleMini.addEventListener('click', () => regenerateStanza(sIdx));
+    head.querySelector('.stanza-head-right').appendChild(shuffleMini);
+    card.appendChild(head);
+
+    stanza.words.forEach((word, lIdx) => {
+      const letter = stanza.letters[lIdx];
+      const isFree = word === null;
+      const famClass = isFree ? 'free' : (letter === 'A' ? 'a' : 'b');
+
+      const row = document.createElement('div');
+      row.className = 'line-row';
+
+      const badge = document.createElement('span');
+      badge.className = 'letter-badge ' + famClass;
+      badge.textContent = letter;
+      row.appendChild(badge);
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'line-input ' + famClass;
+      input.placeholder = isFree ? 'freie Bar …' : 'deine Bar …';
+      input.value = state.lyrics[sIdx + '-' + lIdx] || '';
+      input.setAttribute('aria-label', `Zeile ${lIdx + 1}, Strophe ${sIdx + 1}` + (isFree ? ' (frei, kein Reim)' : ''));
+      input.addEventListener('input', () => {
+        updateLyric(sIdx + '-' + lIdx, input.value);
+      });
+      row.appendChild(input);
+
+      if(!isFree){
+        const rhymeWord = document.createElement('span');
+        rhymeWord.className = 'rhyme-word ' + famClass;
+        rhymeWord.textContent = word;
+        row.appendChild(rhymeWord);
+      }
+
+      card.appendChild(row);
+    });
+
+    container.appendChild(card);
+  });
+}
+
+function render(){
+  renderModeGrid();
+  renderStanzas();
+  renderLegend();
+}
+
+// ---------- Initialisierung ----------
+function init(){
+  loadState();
+  render();
+  document.getElementById('shuffleAllBtn').addEventListener('click', () => regenerateAll(state.mode));
+  document.getElementById('copyBtn').addEventListener('click', copyAll);
+  document.getElementById('manualCloseBtn').addEventListener('click', hideManualPanel);
+}
+
+init();
+</script>
+</body>
+</html>
